@@ -12,6 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-ticket, #printable-ticket * { visibility: visible; }
+            #printable-ticket { position: absolute; left: 0; top: 0; width: 100%; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
@@ -75,12 +80,25 @@
             </div>
         </header>
 
+        <!-- Navegação de Abas (Ativos vs Entregues) -->
+        <div class="bg-white border-b border-slate-200">
+            <div class="max-w-5xl mx-auto px-4 flex gap-6">
+                <button onclick="switchTab('ativos')" id="tab-ativos-btn" class="py-3 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition-colors cursor-pointer flex items-center gap-1.5">
+                    <span>📦</span> Pedidos Ativos (<span id="count-ativos">0</span>)
+                </button>
+                <button onclick="switchTab('entregues')" id="tab-entregues-btn" class="py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition-colors cursor-pointer flex items-center gap-1.5">
+                    <span>✨</span> Histórico de Entregues (<span id="count-entregues">0</span>)
+                </button>
+            </div>
+        </div>
+
         <!-- Conteúdo Principal -->
         <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6">
 
             <!-- VISÃO DA MARCELA (Atendimento) -->
             <div id="view-marcela" class="space-y-6 hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Seção Pedidos Ativos -->
+                <div id="section-ativos" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Formulário de Novo Pedido -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 space-y-4 h-fit">
                         <div class="flex items-center justify-between">
@@ -96,7 +114,7 @@
                                 <input type="text" id="f-cliente" required placeholder="Ex: Ana Souza" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Data / Prazo de Entrega (Calendário)</label>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Data / Prazo de Entrega</label>
                                 <input type="date" id="f-prazo" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:outline-none bg-white cursor-pointer">
                             </div>
 
@@ -124,11 +142,11 @@
                         </form>
                     </div>
 
-                    <!-- Lista de Pedidos em Acompanhamento -->
+                    <!-- Lista de Pedidos Ativos -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 space-y-4">
                         <div class="flex items-center justify-between">
                             <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                                <span>📋</span> Acompanhamento de Pedidos
+                                <span>📋</span> Pedidos em Andamento
                             </h2>
                             <span id="marcela-count" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2.5 py-1 rounded-full">0 pedidos</span>
                         </div>
@@ -138,11 +156,25 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Seção Histórico de Entregues (Aba Marcela) -->
+                <div id="section-entregues" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                            <span>✨</span> Histórico de Pedidos Entregues
+                        </h2>
+                        <span id="marcela-entregues-count" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full">0 entregues</span>
+                    </div>
+                    <div id="marcela-entregues-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1">
+                        <!-- Inserido via JS -->
+                    </div>
+                </div>
             </div>
 
             <!-- VISÃO DO JONATHAN (Produção / Oficina) -->
             <div id="view-jonathan" class="space-y-6 hidden">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Kanban Ativos -->
+                <div id="jonathan-section-ativos" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Coluna Pendentes -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -176,17 +208,51 @@
                         <div id="col-pronto" class="space-y-3 min-h-[300px]"></div>
                     </div>
                 </div>
+
+                <!-- Seção Histórico de Entregues (Aba Jonathan) -->
+                <div id="jonathan-section-entregues" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                            <span>✨</span> Histórico de Pedidos Entregues
+                        </h2>
+                        <span id="jonathan-entregues-count" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full">0 entregues</span>
+                    </div>
+                    <div id="jonathan-entregues-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1">
+                        <!-- Inserido via JS -->
+                    </div>
+                </div>
             </div>
 
         </main>
     </div>
 
+    <!-- Modal de Visualização do Ticket / Comprovante -->
+    <div id="ticket-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">🎟️ Ticket do Pedido</h3>
+                <button onclick="closeTicketModal()" class="text-slate-400 hover:text-slate-700 text-sm font-bold cursor-pointer">✕</button>
+            </div>
+            <div id="ticket-content" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+                <!-- Conteúdo gerado via JS -->
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="window.print()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition-colors cursor-pointer">
+                    Imprimir / Salvar PDF
+                </button>
+                <button onclick="closeTicketModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded-lg text-xs transition-colors cursor-pointer">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Banner Notificação Sonora / Alerta -->
     <div id="notification-banner" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4 z-50 transform translate-y-32 opacity-0 transition-all duration-300 border border-slate-800">
-        <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl">🎉</div>
+        <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl shrink-0">🎉</div>
         <div>
             <h4 class="font-bold text-sm" id="notif-title">Pedido Pronto!</h4>
-            <p class="text-xs text-slate-300" id="notif-desc">O Jonathan concluiu um pedido na oficina.</p>
+            <p class="text-xs text-slate-300" id="notif-desc">O pedido foi concluído!</p>
         </div>
         <button onclick="closeNotification()" class="text-slate-400 hover:text-white ml-3 text-sm font-bold cursor-pointer">✕</button>
     </div>
@@ -198,6 +264,7 @@
         
         let supabaseClient = null;
         let currentProfile = localStorage.getItem('mj_profile') || null;
+        let currentTab = 'ativos'; // 'ativos' ou 'entregues'
         let orders = [];
         let channel = null;
 
@@ -212,7 +279,6 @@
                 addOrderItemField();
             }
             
-            // Define a data de hoje como padrão no calendário
             const hoje = new Date().toISOString().split('T')[0];
             const inputPrazo = document.getElementById('f-prazo');
             if (inputPrazo && !inputPrazo.value) {
@@ -245,6 +311,43 @@
             document.getElementById('profile-screen').classList.remove('hidden');
         }
 
+        function switchTab(tab) {
+            currentTab = tab;
+            const btnAtivos = document.getElementById('tab-ativos-btn');
+            const btnEntregues = document.getElementById('tab-entregues-btn');
+
+            const sectionAtivosMarcela = document.getElementById('section-ativos');
+            const sectionEntreguesMarcela = document.getElementById('section-entregues');
+            
+            const sectionAtivosJonathan = document.getElementById('jonathan-section-ativos');
+            const sectionEntreguesJonathan = document.getElementById('jonathan-section-entregues');
+
+            if (tab === 'ativos') {
+                btnAtivos.className = "py-3 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition-colors cursor-pointer flex items-center gap-1.5";
+                btnEntregues.className = "py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition-colors cursor-pointer flex items-center gap-1.5";
+                
+                if (currentProfile === 'Marcela') {
+                    sectionAtivosMarcela.classList.remove('hidden');
+                    sectionEntreguesMarcela.classList.add('hidden');
+                } else {
+                    sectionAtivosJonathan.classList.remove('hidden');
+                    sectionEntreguesJonathan.classList.add('hidden');
+                }
+            } else {
+                btnEntregues.className = "py-3 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition-colors cursor-pointer flex items-center gap-1.5";
+                btnAtivos.className = "py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition-colors cursor-pointer flex items-center gap-1.5";
+
+                if (currentProfile === 'Marcela') {
+                    sectionAtivosMarcela.classList.add('hidden');
+                    sectionEntreguesMarcela.classList.remove('hidden');
+                } else {
+                    sectionAtivosJonathan.classList.add('hidden');
+                    sectionEntreguesJonathan.classList.remove('hidden');
+                }
+            }
+            renderOrders();
+        }
+
         function setupView() {
             const avatar = document.getElementById('header-avatar');
             const title = document.getElementById('header-title');
@@ -271,17 +374,13 @@
             renderOrders();
         }
 
-        // Formata a data YYYY-MM-DD para "Sábado, 13 de novembro"
         function formatarDataAmigavel(dataString) {
             if (!dataString) return '';
-            // Corrige o fuso horário adicionando o horário local para evitar inversão de dia
             const partes = dataString.split('-');
             if (partes.length !== 3) return dataString;
             const data = new Date(partes[0], partes[1] - 1, partes[2]);
-            
             const options = { weekday: 'long', day: 'numeric', month: 'long' };
             let formato = data.toLocaleDateString('pt-BR', options);
-            // Capitaliza a primeira letra (ex: "sábado, 13 de novembro" -> "Sábado, 13 de novembro")
             return formato.charAt(0).toUpperCase() + formato.slice(1);
         }
 
@@ -343,10 +442,12 @@
                     fetchOrders();
 
                     if (payload.eventType === 'UPDATE' && payload.new.status === 'pronto' && payload.old.status !== 'pronto') {
-                        if (currentProfile === 'Marcela') {
-                            playNotificationSound();
-                            showNotification('Pedido Pronto!', `O pedido de ${payload.new.cliente} foi concluído por Jonathan!`);
-                        }
+                        playNotificationSound();
+                        const ticketNum = payload.new.ticket || `#${payload.new.id.slice(0, 4).toUpperCase()}`;
+                        showNotification(
+                            `Pedido Pronto! (${ticketNum})`, 
+                            `O pedido de ${payload.new.cliente} foi concluído por Jonathan!`
+                        );
                     }
                 })
                 .subscribe();
@@ -360,6 +461,8 @@
             const dataInput = document.getElementById('f-prazo').value;
             const prazoFormatado = formatarDataAmigavel(dataInput);
             const observacoes = document.getElementById('f-obs').value;
+
+            const ticketNum = `#${String(orders.length + 1).padStart(3, '0')}`;
 
             const itemRows = document.querySelectorAll('.item-row');
             let itens = [];
@@ -383,6 +486,7 @@
             }
 
             const novoPedido = {
+                ticket: ticketNum,
                 cliente: cliente,
                 prazo: prazoFormatado,
                 observacoes: observacoes,
@@ -411,8 +515,25 @@
                 .eq('id', id);
         }
 
+        async function concluirPedido(id) {
+            if (!confirm('Deseja marcar este pedido como entregue e movê-lo para o histórico?')) return;
+            if (!supabaseClient) return;
+            await supabaseClient
+                .from('pedidos')
+                .update({ status: 'entregue' })
+                .eq('id', id);
+        }
+
+        async function reabrirPedido(id) {
+            if (!supabaseClient) return;
+            await supabaseClient
+                .from('pedidos')
+                .update({ status: 'pronto' })
+                .eq('id', id);
+        }
+
         async function deleteOrder(id) {
-            if (!confirm('Deseja realmente concluir e remover este pedido?')) return;
+            if (!confirm('Deseja realmente excluir permanentemente este pedido?')) return;
             if (!supabaseClient) return;
             await supabaseClient
                 .from('pedidos')
@@ -420,9 +541,50 @@
                 .eq('id', id);
         }
 
-        function baixarTxtPedido(cliente, prazo, observacoes, itens) {
+        function abrirTicketModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const ticketNum = order.ticket || `#${order.id.slice(0, 4).toUpperCase()}`;
+            const container = document.getElementById('ticket-content');
+
+            let itensHtml = (order.itens || []).map((item, idx) => `
+                <div class="border-b border-slate-200 pb-2 mb-2">
+                    <div><strong>${idx + 1}. ${item.descricao}</strong></div>
+                    <div>Qtd: ${item.quantidade}</div>
+                    ${item.nomeArquivo ? `<div class="text-slate-500 text-[10px]">Ref: ${item.nomeArquivo}</div>` : ''}
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div id="printable-ticket" class="space-y-3 bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="text-center border-b border-slate-200 pb-2">
+                        <div class="font-bold text-sm text-indigo-600">MJ PERSONALIZADOS</div>
+                        <div class="text-base font-extrabold text-slate-900 mt-1">TICKET ${ticketNum}</div>
+                    </div>
+                    <div>
+                        <div><strong>Cliente:</strong> ${order.cliente}</div>
+                        <div><strong>Prazo:</strong> ${order.prazo}</div>
+                        <div><strong>Status:</strong> <span class="uppercase">${order.status}</span></div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200">
+                        <div class="font-bold text-slate-700 mb-1">Itens:</div>
+                        ${itensHtml}
+                    </div>
+                    ${order.observacoes ? `<div class="pt-1 text-[11px] text-slate-600"><strong>Obs:</strong> ${order.observacoes}</div>` : ''}
+                </div>
+            `;
+
+            document.getElementById('ticket-modal').classList.remove('hidden');
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').classList.add('hidden');
+        }
+
+        function baixarTxtPedido(cliente, prazo, observacoes, itens, ticket) {
             let conteudo = `========================================\n`;
-            conteudo += `PEDIDO DE PRODUÇÃO - MJ PERSONALIZADOS\n`;
+            conteudo += `PEDIDO ${ticket} - MJ PERSONALIZADOS\n`;
             conteudo += `========================================\n`;
             conteudo += `Cliente: ${cliente}\n`;
             conteudo += `Prazo de Entrega: ${prazo}\n`;
@@ -442,7 +604,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Pedido_${cliente.replace(/\s+/g, '_')}.txt`;
+            a.download = `Ticket_${ticket}_${cliente.replace(/\s+/g, '_')}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -450,78 +612,111 @@
         }
 
         function renderOrders() {
+            const ativos = orders.filter(o => o.status !== 'entregue');
+            const entregues = orders.filter(o => o.status === 'entregue');
+
+            document.getElementById('count-ativos').textContent = ativos.length;
+            document.getElementById('count-entregues').textContent = entregues.length;
+
             if (currentProfile === 'Marcela') {
-                renderMarcelaView();
+                document.getElementById('marcela-count').textContent = `${ativos.length} pedido${ativos.length !== 1 ? 's' : ''}`;
+                document.getElementById('marcela-entregues-count').textContent = `${entregues.length} entregue${entregues.length !== 1 ? 's' : ''}`;
+                renderMarcelaView(ativos, entregues);
             } else if (currentProfile === 'Jonathan') {
-                renderJonathanView();
+                document.getElementById('jonathan-entregues-count').textContent = `${entregues.length} entregue${entregues.length !== 1 ? 's' : ''}`;
+                renderJonathanView(ativos, entregues);
             }
         }
 
-        function renderMarcelaView() {
-            const container = document.getElementById('marcela-orders-list');
-            const countBadge = document.getElementById('marcela-count');
-            countBadge.textContent = `${orders.length} pedido${orders.length !== 1 ? 's' : ''}`;
+        function renderMarcelaView(ativos, entregues) {
+            const containerAtivos = document.getElementById('marcela-orders-list');
+            const containerEntregues = document.getElementById('marcela-entregues-list');
 
-            if (orders.length === 0) {
-                container.innerHTML = `
+            // Renderiza Ativos
+            if (ativos.length === 0) {
+                containerAtivos.innerHTML = `
                     <div class="text-center py-12 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <p class="text-sm">Nenhum pedido cadastrado ainda.</p>
-                        <p class="text-xs mt-1">Preencha o formulário ao lado para começar.</p>
+                        <p class="text-sm">Nenhum pedido ativo no momento.</p>
+                        <p class="text-xs mt-1">Preencha o formulário ao lado para cadastrar.</p>
                     </div>
                 `;
-                return;
+            } else {
+                containerAtivos.innerHTML = ativos.map(o => gerarCardPedidoMarcela(o)).join('');
             }
 
-            container.innerHTML = orders.map(o => {
-                let statusBadge = '';
-                if (o.status === 'pendente') statusBadge = '<span class="px-2.5 py-1 bg-amber-50 text-amber-700 font-semibold text-xs rounded-full">Pendente</span>';
-                else if (o.status === 'producao') statusBadge = '<span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-semibold text-xs rounded-full">Em Produção</span>';
-                else if (o.status === 'pronto') statusBadge = '<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold text-xs rounded-full">Pronto! 🎉</span>';
-
-                const itensHtml = (o.itens || []).map((item, idx) => `
-                    <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between gap-3 text-xs">
-                        <div>
-                            <span class="font-bold text-slate-800">${idx + 1}. ${item.descricao}</span>
-                            <span class="text-slate-500 block">Qtd: ${item.quantidade}</span>
-                        </div>
-                        ${item.foto ? `<a href="${item.foto}" target="_blank" class="text-pink-600 hover:underline font-medium shrink-0">Ver Foto 📷</a>` : ''}
+            // Renderiza Entregues
+            if (entregues.length === 0) {
+                containerEntregues.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <p class="text-sm">Nenhum pedido no histórico de entregues ainda.</p>
                     </div>
-                `).join('');
+                `;
+            } else {
+                containerEntregues.innerHTML = entregues.map(o => gerarCardPedidoMarcela(o)).join('');
+            }
+        }
 
-                return `
-                    <div class="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-3 shadow-xs">
-                        <div class="flex items-start justify-between">
-                            <div>
+        function gerarCardPedidoMarcela(o) {
+            const ticketNum = o.ticket || `#${o.id.slice(0, 4).toUpperCase()}`;
+            let statusBadge = '';
+            if (o.status === 'pendente') statusBadge = '<span class="px-2 py-0.5 bg-amber-50 text-amber-700 font-semibold text-xs rounded-full">Pendente</span>';
+            else if (o.status === 'producao') statusBadge = '<span class="px-2 py-0.5 bg-blue-50 text-blue-700 font-semibold text-xs rounded-full">Em Produção</span>';
+            else if (o.status === 'pronto') statusBadge = '<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold text-xs rounded-full">Pronto! 🎉</span>';
+            else if (o.status === 'entregue') statusBadge = '<span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-semibold text-xs rounded-full">Entregue ✨</span>';
+
+            const itensHtml = (o.itens || []).map((item, idx) => `
+                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between gap-3 text-xs">
+                    <div>
+                        <span class="font-bold text-slate-800">${idx + 1}. ${item.descricao}</span>
+                        <span class="text-slate-500 block">Qtd: ${item.quantidade}</span>
+                    </div>
+                    ${item.foto ? `<a href="${item.foto}" target="_blank" class="text-pink-600 hover:underline font-medium shrink-0">Ver Foto 📷</a>` : ''}
+                </div>
+            `).join('');
+
+            return `
+                <div class="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-3 shadow-xs">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded">${ticketNum}</span>
                                 <span class="text-xs font-bold text-pink-600 uppercase tracking-wide">Cliente: ${o.cliente}</span>
-                                <div class="text-xs text-slate-500 mt-0.5">⏰ Prazo: <strong>${o.prazo}</strong></div>
                             </div>
-                            ${statusBadge}
+                            <div class="text-xs text-slate-500 mt-1">⏰ Prazo: <strong>${o.prazo}</strong></div>
                         </div>
-                        <div class="space-y-2">
-                            <div class="text-[11px] font-bold text-slate-400 uppercase">Itens do Pedido:</div>
-                            ${itensHtml}
-                        </div>
-                        ${o.observacoes ? `<div class="text-xs text-slate-500 pt-1 border-t border-slate-100">💬 Obs: ${o.observacoes}</div>` : ''}
-                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                        ${statusBadge}
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase">Itens do Pedido:</div>
+                        ${itensHtml}
+                    </div>
+                    ${o.observacoes ? `<div class="text-xs text-slate-500 pt-1 border-t border-slate-100">💬 Obs: ${o.observacoes}</div>` : ''}
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <button onclick="abrirTicketModal('${o.id}')" class="text-xs text-indigo-600 hover:underline font-semibold cursor-pointer">
+                            🎟️ Ver Ticket
+                        </button>
+                        <div class="flex gap-2">
                             ${o.status === 'pronto' ? `
-                                <button onclick="deleteOrder('${o.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer">
-                                    Entregue / Concluir
+                                <button onclick="concluirPedido('${o.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer">
+                                    Concluir e Arquivar 📦
                                 </button>
+                            ` : ''}
+                            ${o.status === 'entregue' ? `
+                                <button onclick="reabrirPedido('${o.id}')" class="px-2.5 py-1 text-xs text-indigo-600 hover:underline font-medium cursor-pointer">Reabrir Pedido</button>
+                                <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors cursor-pointer">Excluir</button>
                             ` : `
-                                <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors cursor-pointer">
-                                    Excluir
-                                </button>
+                                <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors cursor-pointer">Excluir</button>
                             `}
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `;
         }
 
-        function renderJonathanView() {
-            const pendentes = orders.filter(o => o.status === 'pendente');
-            const producao = orders.filter(o => o.status === 'producao');
-            const prontos = orders.filter(o => o.status === 'pronto');
+        function renderJonathanView(ativos, entregues) {
+            const pendentes = ativos.filter(o => o.status === 'pendente');
+            const producao = ativos.filter(o => o.status === 'producao');
+            const prontos = ativos.filter(o => o.status === 'pronto');
 
             document.getElementById('count-pendente').textContent = pendentes.length;
             document.getElementById('count-producao').textContent = producao.length;
@@ -530,6 +725,42 @@
             document.getElementById('col-pendente').innerHTML = renderKanbanColumn(pendentes, 'pendente');
             document.getElementById('col-producao').innerHTML = renderKanbanColumn(producao, 'producao');
             document.getElementById('col-pronto').innerHTML = renderKanbanColumn(prontos, 'pronto');
+
+            const containerEntregues = document.getElementById('jonathan-entregues-list');
+            if (entregues.length === 0) {
+                containerEntregues.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <p class="text-sm">Nenhum pedido no histórico de entregues ainda.</p>
+                    </div>
+                `;
+            } else {
+                containerEntregues.innerHTML = entregues.map(o => {
+                    const ticketNum = o.ticket || `#${o.id.slice(0, 4).toUpperCase()}`;
+                    const itensHtml = (o.itens || []).map((item, idx) => `
+                        <div class="p-2 bg-white rounded-lg border border-slate-200 space-y-1 text-xs shadow-xs">
+                            <div class="font-bold text-slate-800">${idx + 1}. ${item.descricao}</div>
+                            <div class="text-slate-500">Qtd: <strong>${item.quantidade}</strong></div>
+                            ${item.foto ? `<a href="${item.foto}" target="_blank" class="text-blue-600 hover:underline text-[11px] font-semibold">Visualizar Foto</a>` : ''}
+                        </div>
+                    `).join('');
+
+                    return `
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 shadow-xs space-y-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded">${ticketNum}</span>
+                                        <span class="text-xs font-bold text-blue-600 uppercase">Cliente: ${o.cliente}</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-0.5">Prazo: <strong>${o.prazo}</strong> | <span class="text-emerald-600 font-bold">Entregue ✨</span></div>
+                                </div>
+                                <button onclick="abrirTicketModal('${o.id}')" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold rounded cursor-pointer">🎟️ Ticket</button>
+                            </div>
+                            <div class="space-y-2">${itensHtml}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         function renderKanbanColumn(list, status) {
@@ -538,6 +769,7 @@
             }
 
             return list.map(o => {
+                const ticketNum = o.ticket || `#${o.id.slice(0, 4).toUpperCase()}`;
                 const itensHtml = (o.itens || []).map((item, idx) => `
                     <div class="p-2 bg-white rounded-lg border border-slate-200 space-y-1 text-xs shadow-xs">
                         <div class="font-bold text-slate-800">${idx + 1}. ${item.descricao}</div>
@@ -545,7 +777,7 @@
                         ${item.foto ? `
                             <div class="flex items-center gap-2 pt-1">
                                 <a href="${item.foto}" target="_blank" class="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[11px] font-semibold transition-colors">Visualizar Foto</a>
-                                <a href="${item.foto}" download="referencia_${o.cliente}_${idx+1}.png" class="px-2 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-[11px] font-semibold transition-colors">Baixar Foto ⬇</a>
+                                <a href="${item.foto}" download="referencia_${o.cliente}_${idx+1}.png" class="px-2 py-1 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-[11px] font-semibold transition-colors">Baixar ⬇</a>
                             </div>
                         ` : ''}
                     </div>
@@ -555,17 +787,19 @@
                     <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 shadow-xs space-y-3">
                         <div class="flex justify-between items-start">
                             <div>
-                                <div class="text-xs font-bold text-blue-600 uppercase">Cliente: ${o.cliente}</div>
-                                <div class="text-xs text-slate-500">Prazo: <strong>${o.prazo}</strong></div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded">${ticketNum}</span>
+                                    <span class="text-xs font-bold text-blue-600 uppercase">Cliente: ${o.cliente}</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">Prazo: <strong>${o.prazo}</strong></div>
                             </div>
-                            <button onclick="baixarTxtPedido('${o.cliente}', '${o.prazo}', '${o.observacoes || ''}', ${JSON.stringify(o.itens).replace(/"/g, '&quot;')})" title="Baixar TXT do Pedido" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold rounded cursor-pointer">
-                                📄 Baixar .txt
-                            </button>
+                            <div class="flex gap-1">
+                                <button onclick="abrirTicketModal('${o.id}')" title="Ver Ticket" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold rounded cursor-pointer">🎟️</button>
+                                <button onclick="baixarTxtPedido('${o.cliente}', '${o.prazo}', '${o.observacoes || ''}', ${JSON.stringify(o.itens).replace(/"/g, '&quot;')}, '${ticketNum}')" title="Baixar TXT" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold rounded cursor-pointer">📄</button>
+                            </div>
                         </div>
                         
-                        <div class="space-y-2">
-                            ${itensHtml}
-                        </div>
+                        <div class="space-y-2">${itensHtml}</div>
 
                         ${o.observacoes ? `<div class="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-200">Obs: ${o.observacoes}</div>` : ''}
 
@@ -581,8 +815,9 @@
                                 </button>
                             ` : ''}
                             ${status === 'pronto' ? `
-                                <span class="text-xs text-emerald-600 font-semibold">Aguardando retirada</span>
-                                <button onclick="updateOrderStatus('${o.id}', 'producao')" class="text-xs text-slate-400 hover:text-slate-600 underline cursor-pointer">Voltar</button>
+                                <button onclick="concluirPedido('${o.id}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium py-1.5 rounded-lg transition-colors shadow-xs cursor-pointer">
+                                    Marcar como Entregue 📦
+                                </button>
                             ` : ''}
                         </div>
                     </div>
@@ -616,7 +851,7 @@
             banner.classList.remove('translate-y-32', 'opacity-0');
             setTimeout(() => {
                 closeNotification();
-            }, 6000);
+            }, 7000);
         }
 
         function closeNotification() {
