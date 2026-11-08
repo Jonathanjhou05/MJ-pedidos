@@ -12,40 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        @keyframes pulse-subtle {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        .animate-pulse-subtle { animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
-
-    <!-- Modal / Tela de Configuração Inicial (Supabase) -->
-    <div id="setup-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mx-auto text-xl font-bold">MJ</div>
-                <h2 class="text-xl font-bold text-slate-900">Configuração do Supabase</h2>
-                <p class="text-xs text-slate-500">Insira as credenciais do seu projeto para ativar a sincronização em tempo real entre a Marcela e o Jonathan.</p>
-            </div>
-            
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">URL do Supabase (Project URL)</label>
-                    <input type="text" id="supa-url" placeholder="https://xyzproject.supabase.co" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Chave Anon Pública (Publishable / Anon Key)</label>
-                    <input type="password" id="supa-key" placeholder="sb_publishable_..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-            </div>
-
-            <button onclick="saveSupabaseConfig()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-sm shadow-indigo-200">
-                Salvar e Conectar
-            </button>
-        </div>
-    </div>
 
     <!-- Tela de Seleção de Perfil -->
     <div id="profile-screen" class="fixed inset-0 bg-slate-100 z-40 flex items-center justify-center p-4">
@@ -74,11 +43,10 @@
                 </button>
             </div>
 
-            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs text-slate-400">
+            <div class="pt-2 border-t border-slate-100 flex justify-center items-center text-xs text-slate-400">
                 <span id="connection-status-badge" class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Configurando conexão...
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Supabase Conectado
                 </span>
-                <button onclick="openSetupModal()" class="text-indigo-600 hover:underline font-medium">Configurar Chaves</button>
             </div>
         </div>
     </div>
@@ -92,15 +60,15 @@
                     <div id="header-avatar" class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">M</div>
                     <div>
                         <h1 class="font-bold text-slate-900 text-sm md:text-base leading-tight" id="header-title">MJ Pedidos</h1>
-                        <p class="text-xs text-slate-500" id="header-subtitle">Conectado como Marcela</p>
+                        <p class="text-xs text-slate-500" id="header-subtitle">Conectado</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <div id="online-indicator" class="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online (Supabase)
+                    <div class="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
                     </div>
-                    <button onclick="switchProfile()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                    <button onclick="switchProfile()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">
                         Trocar Perfil
                     </button>
                 </div>
@@ -146,7 +114,7 @@
                                 <input type="text" id="f-obs" placeholder="Ex: Cores azul e dourado" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:outline-none">
                             </div>
 
-                            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-sm shadow-pink-200">
+                            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-sm shadow-pink-200 cursor-pointer">
                                 Cadastrar e Enviar para Oficina
                             </button>
                         </form>
@@ -216,28 +184,21 @@
             <h4 class="font-bold text-sm" id="notif-title">Pedido Pronto!</h4>
             <p class="text-xs text-slate-300" id="notif-desc">O Jonathan concluiu um pedido na oficina.</p>
         </div>
-        <button onclick="closeNotification()" class="text-slate-400 hover:text-white ml-3 text-sm font-bold">✕</button>
+        <button onclick="closeNotification()" class="text-slate-400 hover:text-white ml-3 text-sm font-bold cursor-pointer">✕</button>
     </div>
 
     <!-- Script de Lógica do App com Supabase Realtime -->
     <script>
-        // Configurações padrão ou salvas
-        let SUPABASE_URL = localStorage.getItem('mj_supa_url') || '';
-        let SUPABASE_KEY = localStorage.getItem('mj_supa_key') || '';
+        const SUPABASE_URL = "https://gysadymuxagaqteijoyd.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_jjO8-Hyu9WsEWWkb2iEkRA_x5qcYX2A";
+        
         let supabaseClient = null;
-
         let currentProfile = localStorage.getItem('mj_profile') || null;
         let orders = [];
         let channel = null;
 
-        // Inicialização
         window.addEventListener('DOMContentLoaded', () => {
-            if (!SUPABASE_URL || !SUPABASE_KEY) {
-                openSetupModal();
-            } else {
-                initSupabase();
-            }
-
+            initSupabase();
             if (currentProfile) {
                 document.getElementById('profile-screen').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
@@ -245,39 +206,13 @@
             }
         });
 
-        function openSetupModal() {
-            document.getElementById('supa-url').value = SUPABASE_URL;
-            document.getElementById('supa-key').value = SUPABASE_KEY;
-            document.getElementById('setup-modal').classList.remove('hidden');
-        }
-
-        function saveSupabaseConfig() {
-            const url = document.getElementById('supa-url').value.trim();
-            const key = document.getElementById('supa-key').value.trim();
-
-            if (!url || !key) {
-                alert('Preencha a URL e a Chave do Supabase.');
-                return;
-            }
-
-            localStorage.setItem('mj_supa_url', url);
-            localStorage.setItem('mj_supa_key', key);
-            SUPABASE_URL = url;
-            SUPABASE_KEY = key;
-
-            document.getElementById('setup-modal').classList.add('hidden');
-            initSupabase();
-        }
-
         function initSupabase() {
             try {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                document.getElementById('connection-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Supabase Conectado';
                 fetchOrders();
                 subscribeRealtime();
             } catch (e) {
                 console.error(e);
-                document.getElementById('connection-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Erro de Conexão';
             }
         }
 
@@ -322,7 +257,6 @@
             renderOrders();
         }
 
-        // Supabase Data Operations
         async function fetchOrders() {
             if (!supabaseClient) return;
             const { data, error } = await supabaseClient
@@ -330,9 +264,7 @@
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Erro ao buscar pedidos:', error);
-            } else {
+            if (!error) {
                 orders = data || [];
                 renderOrders();
             }
@@ -345,10 +277,8 @@
             channel = supabaseClient
                 .channel('public:pedidos')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, (payload) => {
-                    console.log('Mudança em tempo real:', payload);
                     fetchOrders();
 
-                    // Se o Jonathan marcou algo como pronto e a Marcela está logada, avisa!
                     if (payload.eventType === 'UPDATE' && payload.new.status === 'pronto' && payload.old.status !== 'pronto') {
                         if (currentProfile === 'Marcela') {
                             playNotificationSound();
@@ -361,11 +291,7 @@
 
         async function handleCreateOrder(e) {
             e.preventDefault();
-            if (!supabaseClient) {
-                alert('Configure o Supabase primeiro.');
-                openSetupModal();
-                return;
-            }
+            if (!supabaseClient) return;
 
             const novoPedido = {
                 cliente: document.getElementById('f-cliente').value,
@@ -378,39 +304,30 @@
 
             const { error } = await supabaseClient.from('pedidos').insert([novoPedido]);
 
-            if (error) {
-                alert('Erro ao cadastrar pedido: ' + error.message);
-            } else {
+            if (!error) {
                 document.getElementById('order-form').reset();
+            } else {
+                alert('Erro ao cadastrar pedido: ' + error.message);
             }
         }
 
         async function updateOrderStatus(id, newStatus) {
             if (!supabaseClient) return;
-            const { error } = await supabaseClient
+            await supabaseClient
                 .from('pedidos')
                 .update({ status: newStatus })
                 .eq('id', id);
-
-            if (error) {
-                alert('Erro ao atualizar status: ' + error.message);
-            }
         }
 
         async function deleteOrder(id) {
-            if (!confirm('Deseja realmente excluir este pedido?')) return;
+            if (!confirm('Deseja realmente concluir e remover este pedido?')) return;
             if (!supabaseClient) return;
-            const { error } = await supabaseClient
+            await supabaseClient
                 .from('pedidos')
                 .delete()
                 .eq('id', id);
-
-            if (error) {
-                alert('Erro ao excluir: ' + error.message);
-            }
         }
 
-        // Renderização das Telas
         function renderOrders() {
             if (currentProfile === 'Marcela') {
                 renderMarcelaView();
@@ -441,7 +358,7 @@
                 else if (o.status === 'pronto') statusBadge = '<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold text-xs rounded-full">Pronto! 🎉</span>';
 
                 return `
-                    <div class="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-2">
+                    <div class="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-2 shadow-xs">
                         <div class="flex items-start justify-between">
                             <div>
                                 <span class="text-xs font-bold text-pink-600 uppercase tracking-wide">${o.cliente}</span>
@@ -456,11 +373,11 @@
                         </div>
                         <div class="flex justify-end gap-2 pt-2">
                             ${o.status === 'pronto' ? `
-                                <button onclick="deleteOrder('${o.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs">
+                                <button onclick="deleteOrder('${o.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer">
                                     Entregue / Concluir
                                 </button>
                             ` : `
-                                <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors">
+                                <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors cursor-pointer">
                                     Excluir
                                 </button>
                             `}
@@ -501,33 +418,32 @@
                     </div>
                     <div class="flex items-center justify-between pt-2 border-t border-slate-100">
                         ${status === 'pendente' ? `
-                            <button onclick="updateOrderStatus('${o.id}', 'producao')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 rounded-lg transition-colors">
+                            <button onclick="updateOrderStatus('${o.id}', 'producao')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1.5 rounded-lg transition-colors cursor-pointer">
                                 Iniciar Produção ➔
                             </button>
                         ` : ''}
                         ${status === 'producao' ? `
-                            <button onclick="updateOrderStatus('${o.id}', 'pronto')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium py-1.5 rounded-lg transition-colors shadow-xs">
+                            <button onclick="updateOrderStatus('${o.id}', 'pronto')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium py-1.5 rounded-lg transition-colors shadow-xs cursor-pointer">
                                 Pronto! (Avisar Marcela) ✨
                             </button>
                         ` : ''}
                         ${status === 'pronto' ? `
                             <span class="text-xs text-emerald-600 font-semibold">Aguardando retirada</span>
-                            <button onclick="updateOrderStatus('${o.id}', 'producao')" class="text-xs text-slate-400 hover:text-slate-600 underline">Voltar</button>
+                            <button onclick="updateOrderStatus('${o.id}', 'producao')" class="text-xs text-slate-400 hover:text-slate-600 underline cursor-pointer">Voltar</button>
                         ` : ''}
                     </div>
                 </div>
             `).join('');
         }
 
-        // Alerta sonoro via Web Audio API
         function playNotificationSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
                 gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
                 osc.connect(gain);
