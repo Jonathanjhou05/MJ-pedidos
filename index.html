@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ateliê do Casal - Controle de Pedidos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#fdf4f8',
+                            100: '#fce7f3',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Tela de Seleção de Perfil / Sala -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 space-y-6 border border-slate-100 animate-fadeIn">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-100 text-brand-600 mb-2 shadow-inner">
+                    <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Ateliê & Personalizados</h1>
+                <p class="text-sm text-slate-500">Escolha o seu perfil para entrar no painel sincronizado</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Código da Sala / Ateliê</label>
+                    <input type="text" id="room-code" value="atelie-familia-01" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium text-slate-700 bg-slate-50">
+                    <p class="text-xs text-slate-400 mt-1">Mantenha o mesmo código nos dois celulares/abas para sincronizar.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="selectRole('marcela')" class="group flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-slate-200 hover:border-pink-500 hover:bg-pink-50/50 transition-all text-center space-y-3 cursor-pointer">
+                        <div class="w-12 h-12 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-slate-800">Marcela</span>
+                            <span class="text-xs text-slate-500">Atendimento & Pedidos</span>
+                        </div>
+                    </button>
+
+                    <button onclick="selectRole('jonathan')" class="group flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all text-center space-y-3 cursor-pointer">
+                        <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-slate-800">Jonathan</span>
+                            <span class="text-xs text-slate-500">Produção & Execução</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cabeçalho Principal -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div id="role-icon-badge" class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <div>
+                    <h2 id="header-title" class="font-bold text-slate-900 leading-tight">Ateliê de Pedidos</h2>
+                    <div class="flex items-center space-x-2 text-xs text-slate-500">
+                        <span id="role-display-name" class="font-medium text-slate-700">Conectado</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Tempo Real Ativo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAudio()" id="audio-toggle-btn" title="Ativar/Desativar Sons" class="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="switchProfile()" class="text-xs font-medium px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors flex items-center space-x-1.5">
+                    <i class="fa-solid fa-right-left"></i>
+                    <span class="hidden sm:inline">Trocar Perfil</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal Dinâmico -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        
+        <!-- NOTIFICAÇÃO DE ALERTA -->
+        <div id="notification-banner" class="hidden bg-gradient-to-r from-pink-500 to-rose-500 text-white p-4 rounded-2xl shadow-lg flex items-center justify-between animate-bounce-short">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm" id="notification-title">Atualização Importante!</h4>
+                    <p class="text-xs text-pink-100" id="notification-msg">Um pedido foi finalizado pelo Jonathan.</p>
+                </div>
+            </div>
+            <button onclick="closeNotification()" class="text-white/80 hover:text-white p-2 text-sm font-bold">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- ESTATÍSTICAS RÁPIDAS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pendentes</span>
+                    <h3 id="stat-pending" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Em Execução</span>
+                    <h3 id="stat-running" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prontos</span>
+                    <h3 id="stat-ready" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Entregues</span>
+                    <h3 id="stat-delivered" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAINEL DA MARCELA (Atendimento & Cadastro) -->
+        <div id="panel-marcela" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Formulário de Novo Pedido -->
+                <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-xs h-fit space-y-4">
+                    <div class="flex items-center space-x-2 pb-2 border-b border-slate-100">
+                        <i class="fa-solid fa-file-circle-plus text-pink-600 text-lg"></i>
+                        <h3 class="font-bold text-slate-900">Novo Pedido / Personalizado</h3>
+                    </div>
+
+                    <form id="order-form" onsubmit="handleCreateOrder(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Cliente *</label>
+                            <input type="text" id="client-name" required placeholder="Ex: Ana Souza" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Produto / Descrição do Personalizado *</label>
+                            <textarea id="order-desc" required rows="3" placeholder="Ex: 50 Caixas Milk tema Unicórnio + Nome Duda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Quantidade *</label>
+                                <input type="number" id="order-qty" min="1" value="1" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Prazo / Entrega *</label>
+                                <input type="date" id="order-deadline" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Observações Especiais</label>
+                            <input type="text" id="order-obs" placeholder="Ex: Cores pastéis, fita dourada..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        </div>
+
+                        <button type="submit" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Lançar Pedido</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista de Pedidos na Visão da Marcela -->
+                <div class="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-list-check text-pink-600 text-lg"></i>
+                            <h3 class="font-bold text-slate-900">Acompanhamento de Atendimento</h3>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="filter-status-marcela" onchange="renderApp()" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-600 focus:outline-none">
+                                <option value="all">Todos os Status</option>
+                                <option value="pendente">Pendentes</option>
+                                <option value="producao">Em Execução</option>
+                                <option value="pronto">Prontos</option>
+                                <option value="entregue">Entregues</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="marcela-orders-container" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                        <!-- Conteúdo inserido dinamicamente via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAINEL DO JONATHAN (Produção & Execução) -->
+        <div id="panel-jonathan" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-xs space-y-4">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-industry text-indigo-600 text-lg"></i>
+                        <h3 class="font-bold text-slate-900">Painel de Produção (Fila do Jonathan)</h3>
+                    </div>
+                    <div class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg font-medium">
+                        Modo Oficina
+                    </div>
+                </div>
+
+                <!-- Abas / Filtro rápido Produção -->
+                <div class="flex space-x-2 overflow-x-auto pb-1">
+                    <button onclick="setJonathanTab('todos')" id="j-tab-todos" class="jonathan-tab px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all shadow-xs cursor-pointer">Todos</button>
+                    <button onclick="setJonathanTab('pendente')" id="j-tab-pendente" class="jonathan-tab px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all cursor-pointer">Na Fila</button>
+                    <button onclick="setJonathanTab('producao')" id="j-tab-producao" class="jonathan-tab px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all cursor-pointer">Executando</button>
+                    <button onclick="setJonathanTab('pronto')" id="j-tab-pronto" class="jonathan-tab px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all cursor-pointer">Prontos</button>
+                </div>
+
+                <div id="jonathan-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                    <!-- Conteúdo inserido dinamicamente via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Customizado de Mensagem -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 text-center">
+            <div id="modal-icon" class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+                <h3 id="modal-title" class="font-bold text-slate-900 text-lg">Sucesso!</h3>
+                <p id="modal-desc" class="text-sm text-slate-500 mt-1">Ação realizada com sucesso.</p>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-xl transition-all">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Lógica JavaScript Principal -->
+    <script>
+        // Configuração do Estado e Canal de Comunicação em Tempo Real
+        let currentRole = null;
+        let roomCode = 'atelie-familia-01';
+        let soundEnabled = true;
+        let jonathanActiveTab = 'todos';
+        let broadcastChannel = null;
+
+        // Chave do localStorage baseada na sala
+        function getStorageKey() {
+            return `atelie_orders_${roomCode}`;
+        }
+
+        // Dados Iniciais simulados caso esteja vazio
+        const initialSampleOrders = [
+            {
+                id: 'ord-101',
+                client: 'Juliana Mendes',
+                desc: 'Kit Festa Batizado (30 tubetes + 20 caixas milk)',
+                qty: 50,
+                deadline: '2026-03-15',
+                obs: 'Tema anjinho dourado e branco',
+                status: 'pendente', // pendente, producao, pronto, entregue
+                createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
+            },
+            {
+                id: 'ord-102',
+                client: 'Carlos Eduardo',
+                desc: 'Topo de Bolo Personalizado Futebol',
+                qty: 1,
+                deadline: '2026-03-10',
+                obs: 'Nome: Lucas, 10 anos, cor verde',
+                status: 'producao',
+                createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
+            }
+        ];
+
+        function getOrders() {
+            const data = localStorage.getItem(getStorageKey());
+            if (!data) {
+                localStorage.setItem(getStorageKey(), JSON.stringify(initialSampleOrders));
+                return initialSampleOrders;
+            }
+            try {
+                return JSON.parse(data);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveOrders(orders) {
+            localStorage.setItem(getStorageKey(), JSON.stringify(orders));
+            // Disparar sincronização em tempo real para outras abas / dispositivos via BroadcastChannel
+            if (broadcastChannel) {
+                broadcastChannel.postMessage({ type: 'SYNC_ORDERS', orders });
+            }
+        }
+
+        // Inicialização do BroadcastChannel para Sincronização Instantânea em Tempo Real
+        function initBroadcast() {
+            roomCode = document.getElementById('room-code').value.trim() || 'atelie-familia-01';
+            if (broadcastChannel) {
+                broadcastChannel.close();
+            }
+            broadcastChannel = new BroadcastChannel(`atelie_channel_${roomCode}`);
+            broadcastChannel.onmessage = (event) => {
+                if (event.data && event.data.type === 'SYNC_ORDERS') {
+                    renderApp();
+                    checkNotifications();
+                }
+            };
+        }
+
+        // Sistema de Som (Web Audio API) sem dependências externas
+        function playNotificationSound(type = 'success') {
+            if (!soundEnabled) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'ready') {
+                    // Som alegre de "Pronto!" para a esposa
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                } else {
+                    // Som padrão de clique / novo pedido
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.2);
+                }
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('audio-toggle-btn');
+            btn.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-slate-400"></i>';
+            showModal('Som ' + (soundEnabled ? 'Ativado' : 'Desativado'), soundEnabled ? 'Os alertas sonoros estão ligados.' : 'Os alertas sonoros foram silenciados.', 'info');
+        }
+
+        // Seleção de Perfil
+        function selectRole(role) {
+            currentRole = role;
+            roomCode = document.getElementById('room-code').value.trim() || 'atelie-familia-01';
+            initBroadcast();
+
+            document.getElementById('login-screen').classList.add('hidden');
+            
+            const badge = document.getElementById('role-icon-badge');
+            const nameDisplay = document.getElementById('role-display-name');
+            const headerTitle = document.getElementById('header-title');
+
+            if (role === 'marcela') {
+                badge.className = 'w-10 h-10 rounded-xl bg-pink-600 flex items-center justify-center text-white shadow-sm';
+                badge.innerHTML = '<i class="fa-solid fa-headset"></i>';
+                nameDisplay.textContent = 'Marcela (Atendimento)';
+                headerTitle.textContent = 'Painel de Atendimento e Vendas';
+                document.getElementById('panel-marcela').classList.remove('hidden');
+                document.getElementById('panel-jonathan').classList.add('hidden');
+            } else {
+                badge.className = 'w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm';
+                badge.innerHTML = '<i class="fa-solid fa-gears"></i>';
+                nameDisplay.textContent = 'Jonathan (Produção)';
+                headerTitle.textContent = 'Painel de Execução e Oficina';
+                document.getElementById('panel-jonathan').classList.remove('hidden');
+                document.getElementById('panel-marcela').classList.add('hidden');
+            }
+
+            renderApp();
+        }
+
+        function switchProfile() {
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        // Cadastro de Novo Pedido (Marcela)
+        function handleCreateOrder(e) {
+            e.preventDefault();
+            const client = document.getElementById('client-name').value.trim();
+            const desc = document.getElementById('order-desc').value.trim();
+            const qty = parseInt(document.getElementById('order-qty').value) || 1;
+            const deadline = document.getElementById('order-deadline').value;
+            const obs = document.getElementById('order-obs').value.trim();
+
+            if (!client || !desc || !deadline) return;
+
+            const orders = getOrders();
+            const newOrder = {
+                id: 'ord-' + Date.now().toString().slice(-6),
+                client,
+                desc,
+                qty,
+                deadline,
+                obs,
+                status: 'pendente',
+                createdAt: new Date().toISOString()
+            };
+
+            orders.unshift(newOrder);
+            saveOrders(orders);
+            playNotificationSound('click');
+
+            // Resetar formulário
+            document.getElementById('order-form').reset();
+            document.getElementById('order-qty').value = '1';
+
+            renderApp();
+            showModal('Pedido Lançado!', `O pedido de ${client} foi enviado para a fila do Jonathan com sucesso.`, 'success');
+        }
+
+        // Alterar Status do Pedido
+        function updateOrderStatus(orderId, newStatus) {
+            const orders = getOrders();
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const oldStatus = order.status;
+            order.status = newStatus;
+            saveOrders(orders);
+
+            // Se o Jonathan marcou como PRONTO, notificar a Marcela!
+            if (newStatus === 'pronto' && oldStatus !== 'pronto') {
+                playNotificationSound('ready');
+                triggerNotificationBanner('Pedido Pronto para Entrega!', `O pedido de ${order.client} (${order.desc}) foi concluído pelo Jonathan!`);
+            } else {
+                playNotificationSound('click');
+            }
+
+            renderApp();
+        }
+
+        // Excluir Pedido
+        function deleteOrder(orderId) {
+            if (!confirm('Deseja realmente excluir este pedido?')) return;
+            const orders = getOrders().filter(o => o.id !== orderId);
+            saveOrders(orders);
+            renderApp();
+        }
+
+        // Abas do Jonathan
+        function setJonathanTab(tab) {
+            jonathanActiveTab = tab;
+            document.querySelectorAll('.jonathan-tab').forEach(el => {
+                el.className = 'jonathan-tab px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all cursor-pointer';
+            });
+            const activeBtn = document.getElementById(`j-tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.className = 'jonathan-tab px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all shadow-xs cursor-pointer';
+            }
+            renderJonathanOrders();
+        }
+
+        // Renderizador Geral do App
+        function renderApp() {
+            const orders = getOrders();
+
+            // Atualizar Estatísticas Globais
+            const countPending = orders.filter(o => o.status === 'pendente').length;
+            const countRunning = orders.filter(o => o.status === 'producao').length;
+            const countReady = orders.filter(o => o.status === 'pronto').length;
+            const countDelivered = orders.filter(o => o.status === 'entregue').length;
+
+            document.getElementById('stat-pending').textContent = countPending;
+            document.getElementById('stat-running').textContent = countRunning;
+            document.getElementById('stat-ready').textContent = countReady;
+            document.getElementById('stat-delivered').textContent = countDelivered;
+
+            if (currentRole === 'marcela') {
+                renderMarcelaOrders(orders);
+            } else if (currentRole === 'jonathan') {
+                renderJonathanOrders(orders);
+            }
+        }
+
+        // Renderizar Lista da Marcela
+        function renderMarcelaOrders(orders) {
+            const container = document.getElementById('marcela-orders-container');
+            const filter = document.getElementById('filter-status-marcela').value;
+
+            let filtered = orders;
+            if (filter !== 'all') {
+                filtered = orders.filter(o => o.status === filter);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 space-y-2">
+                        <i class="fa-solid fa-clipboard-list text-3xl"></i>
+                        <p class="text-sm font-medium">Nenhum pedido encontrado nesta categoria.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                const badgeInfo = getStatusBadge(o.status);
+                const formattedDate = formatDate(o.deadline);
+                return `
+                    <div class="bg-white rounded-xl p-4 border border-slate-100 hover:border-slate-200 shadow-2xs transition-all space-y-3">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-pink-600 uppercase tracking-wider">#${o.id}</span>
+                                <h4 class="font-bold text-slate-800 text-base">${escapeHtml(o.client)}</h4>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badgeInfo.class}">
+                                <i class="${badgeInfo.icon} mr-1.5"></i> ${badgeInfo.text}
+                            </span>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-xl text-sm text-slate-700 space-y-1">
+                            <p class="font-medium"><i class="fa-solid fa-box text-slate-400 mr-2"></i> ${escapeHtml(o.desc)} <span class="text-xs text-slate-500 font-normal">(Qtd: ${o.qty})</span></p>
+                            ${o.obs ? `<p class="text-xs text-slate-500"><i class="fa-solid fa-note-sticky text-slate-400 mr-2"></i> Obs: ${escapeHtml(o.obs)}</p>` : ''}
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1 text-xs text-slate-500">
+                            <div class="flex items-center space-x-1.5 font-medium text-slate-600">
+                                <i class="fa-regular fa-calendar-days text-rose-500"></i>
+                                <span>Entrega: ${formattedDate}</span>
+                            </div>
+
+                            <div class="flex items-center space-x-2">
+                                ${o.status === 'pronto' ? `
+                                    <button onclick="updateOrderStatus('${o.id}', 'entregue')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-all shadow-xs cursor-pointer">
+                                        <i class="fa-solid fa-check-double mr-1"></i> Marcar Entregue
+                                    </button>
+                                ` : ''}
+                                <button onclick="deleteOrder('${o.id}')" class="text-slate-400 hover:text-rose-600 p-1 transition-colors">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Renderizar Lista do Jonathan (Kanban / Cards de Oficina)
+        function renderJonathanOrders(orders = getOrders()) {
+            const container = document.getElementById('jonathan-orders-container');
+            
+            let filtered = orders;
+            if (jonathanActiveTab !== 'todos') {
+                filtered = orders.filter(o => o.status === jonathanActiveTab);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-slate-400 space-y-2">
+                        <i class="fa-solid fa-mug-hot text-3xl"></i>
+                        <p class="text-sm font-medium">Tudo limpo por aqui! Nenhum pedido pendente na oficina.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                const badgeInfo = getStatusBadge(o.status);
+                const formattedDate = formatDate(o.deadline);
+                return `
+                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all">
+                        <div class="space-y-2">
+                            <div class="flex items-start justify-between">
+                                <span class="text-xs font-bold text-indigo-600 uppercase">#${o.id}</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeInfo.class}">
+                                    ${badgeInfo.text}
+                                </span>
+                            </div>
+                            <h4 class="font-bold text-slate-900 text-lg">${escapeHtml(o.client)}</h4>
+                            <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">
+                                <span class="font-semibold block text-slate-700 mb-1">Item: ${escapeHtml(o.desc)}</span>
+                                <span class="text-xs text-slate-500">Quantidade: <b>${o.qty} un.</b></span>
+                                ${o.obs ? `<br><span class="text-xs text-indigo-600 font-medium">Obs: ${escapeHtml(o.obs)}</span>` : ''}
+                            </p>
+                        </div>
+
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center text-xs text-slate-500 font-medium">
+                                <i class="fa-regular fa-calendar-days text-indigo-500 mr-1.5"></i>
+                                <span>Prazo: ${formattedDate}</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                ${o.status === 'pendente' ? `
+                                    <button onclick="updateOrderStatus('${o.id}', 'producao')" class="col-span-2 w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-play"></i>
+                                        <span>Iniciar Produção</span>
+                                    </button>
+                                ` : ''}
+
+                                ${o.status === 'producao' ? `
+                                    <button onclick="updateOrderStatus('${o.id}', 'pronto')" class="col-span-2 w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Pronto! (Avisar Marcela)</span>
+                                    </button>
+                                ` : ''}
+
+                                ${o.status === 'pronto' ? `
+                                    <div class="col-span-2 text-center py-2 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-xl">
+                                        <i class="fa-solid fa-bell mr-1"></i> Notificado à Marcela
+                                    </div>
+                                ` : ''}
+
+                                ${o.status === 'entregue' ? `
+                                    <div class="col-span-2 text-center py-2 text-xs font-semibold text-purple-600 bg-purple-50 rounded-xl">
+                                        Pedido Entregue ao Cliente
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Helpers de Status e Cores
+        function getStatusBadge(status) {
+            switch (status) {
+                case 'pendente':
+                    return { text: 'Na Fila', class: 'bg-amber-100 text-amber-700', icon: 'fa-solid fa-clock' };
+                case 'producao':
+                    return { text: 'Em Execução', class: 'bg-blue-100 text-blue-700', icon: 'fa-solid fa-gears' };
+                case 'pronto':
+                    return { text: 'Pronto!', class: 'bg-emerald-100 text-emerald-700', icon: 'fa-solid fa-check' };
+                case 'entregue':
+                    return { text: 'Entregue', class: 'bg-purple-100 text-purple-700', icon: 'fa-solid fa-bag-shopping' };
+                default:
+                    return { text: status, class: 'bg-slate-100 text-slate-700', icon: 'fa-solid fa-circle' };
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // Banner de Notificação Visual para a Marcela
+        function triggerNotificationBanner(title, msg) {
+            if (currentRole !== 'marcela') return; // Notificação principal direcionada à Marcela quando pronto
+            const banner = document.getElementById('notification-banner');
+            document.getElementById('notification-title').textContent = title;
+            document.getElementById('notification-msg').textContent = msg;
+            banner.classList.remove('hidden');
+        }
+
+        function closeNotification() {
+            document.getElementById('notification-banner').classList.add('hidden');
+        }
+
+        // Modal de Alerta Customizado
+        function showModal(title, desc, type = 'success') {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            const iconDiv = document.getElementById('modal-icon');
+            if (type === 'success') {
+                iconDiv.className = 'w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mx-auto';
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                iconDiv.className = 'w-14 h-14 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-2xl mx-auto';
+                iconDiv.innerHTML = '<i class="fa-solid fa-info"></i>';
+            }
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        // Inicialização automática ao carregar a página
+        window.onload = function() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 2);
+            const dateInput = document.getElementById('order-deadline');
+            if (dateInput) {
+                dateInput.value = tomorrow.toISOString().split('T')[0];
+            }
+        };
+    </script>
+</body>
+</html>
