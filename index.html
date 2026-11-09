@@ -85,7 +85,7 @@
             </div>
         </header>
 
-        <!-- Navegação de Abas Principal (Ativos, Entregues, Estoque) -->
+        <!-- Navegação de Abas Principal -->
         <div class="bg-white border-b border-slate-200">
             <div class="max-w-5xl mx-auto px-4 flex gap-6 overflow-x-auto">
                 <button onclick="switchTab('ativos')" id="tab-ativos-btn" class="py-3 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0">
@@ -231,7 +231,7 @@
                 </div>
             </div>
 
-            <!-- SEÇÃO DE ESTOQUE (Comum para ambos perfis) -->
+            <!-- SEÇÃO DE ESTOQUE -->
             <div id="section-estoque" class="space-y-6 hidden">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -239,14 +239,13 @@
                             <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 <span>📊</span> Controle de Estoque de Insumos
                             </h2>
-                            <p class="text-xs text-slate-500">Gerencie a quantidade de camisas, canecas, azulejos e squeezes disponíveis.</p>
+                            <p class="text-xs text-slate-500">Verifique a quantidade disponível de camisas, canecas, azulejos e squeezes.</p>
                         </div>
                         <button onclick="openEstoqueModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5">
-                            <span>+</span> Adicionar / Cadastrar Insumo
+                            <span>+</span> Cadastrar Insumo
                         </button>
                     </div>
 
-                    <!-- Tabela de Estoque -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
@@ -343,7 +342,7 @@
         
         let supabaseClient = null;
         let currentProfile = localStorage.getItem('mj_profile') || null;
-        let currentTab = 'ativos'; // 'ativos', 'entregues', 'estoque'
+        let currentTab = 'ativos';
         let orders = [];
         let estoqueItems = [];
         let channel = null;
@@ -404,18 +403,14 @@
 
             const sectionAtivosMarcela = document.getElementById('section-ativos');
             const sectionEntreguesMarcela = document.getElementById('section-entregues');
-            
             const sectionAtivosJonathan = document.getElementById('jonathan-section-ativos');
             const sectionEntreguesJonathan = document.getElementById('jonathan-section-entregues');
-            
             const sectionEstoque = document.getElementById('section-estoque');
 
-            // Reseta classes de todas as abas
             [btnAtivos, btnEntregues, btnEstoque].forEach(b => {
                 b.className = "py-3 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0";
             });
 
-            // Oculta todas as seções
             sectionAtivosMarcela.classList.add('hidden');
             sectionEntreguesMarcela.classList.add('hidden');
             sectionAtivosJonathan.classList.add('hidden');
@@ -441,7 +436,6 @@
         function setupView() {
             const title = document.getElementById('header-title');
             const subtitle = document.getElementById('header-subtitle');
-            
             const viewMarcela = document.getElementById('view-marcela');
             const viewJonathan = document.getElementById('view-jonathan');
 
@@ -493,8 +487,8 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Cor / Tamanho / Detalhes" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
-                    <input type="text" placeholder="Qtd (ex: 2 un)" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="text" placeholder="Cor / Tamanho" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="number" min="1" placeholder="Qtd (ex: 2)" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2 items-center">
                     <select class="item-servico w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
@@ -570,6 +564,7 @@
                 .subscribe();
         }
 
+        // VERIFICAÇÃO INTELIGENTE DE ESTOQUE AO CADASTRAR
         async function handleCreateOrder(e) {
             e.preventDefault();
             if (!supabaseClient) return;
@@ -578,22 +573,38 @@
             const dataInput = document.getElementById('f-prazo').value;
             const prazoFormatado = formatarDataAmigavel(dataInput);
             const observacoes = document.getElementById('f-obs').value;
-
             const ticketNum = `#${String(orders.length + 1).padStart(3, '0')}`;
 
             const itemRows = document.querySelectorAll('.item-row');
             let itens = [];
+            let avisosEstoque = [];
 
             for (let row of itemRows) {
                 const produto = row.querySelector('.item-produto').value;
-                const detalhe = row.querySelector('.item-detalhe').value;
-                const qtd = row.querySelector('.item-qtd').value;
+                const detalhe = row.querySelector('.item-detalhe').value.trim();
+                const qtd = parseInt(row.querySelector('.item-qtd').value) || 1;
                 const servico = row.querySelector('.item-servico').value;
                 const fileInput = row.querySelector('.item-foto');
                 let fotoBase64 = null;
 
                 if (fileInput.files.length > 0) {
                     fotoBase64 = await convertFileToBase64(fileInput.files[0]);
+                }
+
+                // Verifica se tem no estoque
+                const estoqueMatch = estoqueItems.find(i => 
+                    i.produto.toLowerCase() === produto.toLowerCase() && 
+                    i.variacao.toLowerCase().includes(detalhe.toLowerCase())
+                );
+
+                if (estoqueMatch) {
+                    if (estoqueMatch.quantidade < qtd) {
+                        avisosEstoque.push(`⚠️ Alerta: ${produto} (${detalhe}) tem apenas ${estoqueMatch.quantidade} un. em estoque (Pedido: ${qtd} un).`);
+                    } else {
+                        avisosEstoque.push(`✅ Estoque OK: ${produto} (${detalhe}) - ${estoqueMatch.quantidade} disponíveis.`);
+                    }
+                } else {
+                    avisosEstoque.push(`ℹ️ Nota: ${produto} (${detalhe}) não foi encontrado exatamente no controle de estoque.`);
                 }
 
                 itens.push({
@@ -605,6 +616,9 @@
                     nomeArquivo: fileInput.files.length > 0 ? fileInput.files[0].name : null
                 });
             }
+
+            // Mostra o status do estoque para a Marcela antes de cadastrar
+            alert("Verificação de Estoque:\n\n" + avisosEstoque.join("\n"));
 
             const novoPedido = {
                 ticket: ticketNum,
@@ -636,13 +650,37 @@
                 .eq('id', id);
         }
 
+        // BAIXA AUTOMÁTICA NO ESTOQUE AO CONCLUIR E ENTREGAR O PEDIDO
         async function concluirPedido(id) {
-            if (!confirm('Deseja marcar este pedido como entregue e movê-lo para o histórico?')) return;
+            if (!confirm('Deseja marcar este pedido como entregue? O estoque será atualizado automaticamente.')) return;
             if (!supabaseClient) return;
+
+            const order = orders.find(o => o.id === id);
+            if (order && order.itens) {
+                for (let item of order.itens) {
+                    const qtdPedida = parseInt(item.quantidade) || 1;
+                    const estoqueMatch = estoqueItems.find(i => 
+                        i.produto.toLowerCase() === item.produto.toLowerCase() && 
+                        item.descricao.toLowerCase().includes(i.variacao.toLowerCase())
+                    );
+
+                    if (estoqueMatch) {
+                        const novaQtd = Math.max(0, estoqueMatch.quantidade - qtdPedida);
+                        await supabaseClient
+                            .from('estoque')
+                            .update({ quantidade: novaQtd })
+                            .eq('id', estoqueMatch.id);
+                    }
+                }
+            }
+
+            // Atualiza status para entregue
             await supabaseClient
                 .from('pedidos')
                 .update({ status: 'entregue' })
                 .eq('id', id);
+
+            fetchEstoque();
         }
 
         async function reabrirPedido(id) {
@@ -901,11 +939,11 @@
                         <div class="flex gap-2">
                             ${o.status === 'pronto' ? `
                                 <button onclick="concluirPedido('${o.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer">
-                                    Concluir e Arquivar 📦
+                                    Concluir e Dar Baixa 📦
                                 </button>
                             ` : ''}
                             ${o.status === 'entregue' ? `
-                                <button onclick="reabrirPedido('${o.id}')" class="px-2.5 py-1 text-xs text-indigo-600 hover:underline font-medium cursor-pointer">Reabrir Pedido</button>
+                                <button onclick="reabrirPedido('${o.id}')" class="px-2.5 py-1 text-xs text-indigo-600 hover:underline font-medium cursor-pointer">Reabrir</button>
                                 <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors cursor-pointer">Excluir</button>
                             ` : `
                                 <button onclick="deleteOrder('${o.id}')" class="px-2.5 py-1 text-slate-400 hover:text-rose-600 text-xs font-medium transition-colors cursor-pointer">Excluir</button>
@@ -1019,7 +1057,7 @@
                             ` : ''}
                             ${status === 'pronto' ? `
                                 <button onclick="concluirPedido('${o.id}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium py-1.5 rounded-lg transition-colors shadow-xs cursor-pointer">
-                                    Marcar como Entregue 📦
+                                    Marcar como Entregue e Dar Baixa 📦
                                 </button>
                             ` : ''}
                         </div>
