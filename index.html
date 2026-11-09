@@ -55,7 +55,7 @@
 
             <div class="pt-2 border-t border-slate-100 flex justify-center items-center text-xs text-slate-400">
                 <span id="connection-status-badge" class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Conectado
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Supabase Conectado
                 </span>
             </div>
         </div>
@@ -446,6 +446,7 @@
             return formato.charAt(0).toUpperCase() + formato.slice(1);
         }
 
+        // ADICIONA O ITEM COM SELECTS DINÂMICOS CONVERSANDO COM O ESTOQUE
         function addOrderItemField() {
             const container = document.getElementById('order-items-container');
             const index = container.children.length + 1;
@@ -458,7 +459,7 @@
                     ${index > 1 ? `<button type="button" onclick="this.closest('.item-row').remove()" class="text-rose-500 hover:text-rose-700 text-xs font-bold cursor-pointer">Remover</button>` : ''}
                 </div>
                 <div class="grid grid-cols-1 gap-2">
-                    <select class="item-produto w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <select class="item-produto w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" onchange="atualizarVariacoes(this)" required>
                         <option value="" disabled selected>Selecione o Produto...</option>
                         <option value="Camisa">Camisa</option>
                         <option value="Caneca">Caneca</option>
@@ -470,8 +471,10 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Cor / Tamanho / Detalhe" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
-                    <input type="number" min="1" placeholder="Quantidade" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <select class="item-variacao w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                        <option value="" disabled selected>Selecione a Cor / Tamanho...</option>
+                    </select>
+                    <input type="number" min="1" value="1" placeholder="Qtd" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2 items-center">
                     <select class="item-servico w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
@@ -483,6 +486,31 @@
                 </div>
             `;
             container.appendChild(itemDiv);
+        }
+
+        // ATUALIZA AS OPÇÕES DE VARIAÇÃO DE ACORDO COM O ESTOQUE CADASTRADO
+        function atualizarVariacoes(selectElement) {
+            const produtoSelecionado = selectElement.value;
+            const row = selectElement.closest('.item-row');
+            const variacaoSelect = row.querySelector('.item-variacao');
+
+            variacaoSelect.innerHTML = '<option value="" disabled selected>Selecione a Cor / Tamanho...</option>';
+
+            const filtrados = estoqueItems.filter(i => i.produto.toLowerCase() === produtoSelecionado.toLowerCase());
+
+            if (filtrados.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "Padrão";
+                opt.textContent = "Padrão (Nenhum em estoque)";
+                variacaoSelect.appendChild(opt);
+            } else {
+                filtrados.forEach(i => {
+                    const opt = document.createElement('option');
+                    opt.value = i.variacao;
+                    opt.textContent = `${i.variacao} (${i.quantidade} disp.)`;
+                    variacaoSelect.appendChild(opt);
+                });
+            }
         }
 
         function convertFileToBase64(file) {
@@ -520,11 +548,9 @@
 
             if (!error) {
                 estoqueItems = data || [];
-                renderEstoque();
             }
         }
 
-        // TEMPO REAL OTIMIZADO SEM LAG
         function subscribeRealtime() {
             if (!supabaseClient) return;
 
@@ -547,6 +573,7 @@
                 .subscribe();
         }
 
+        // VALIDAÇÃO RIGOROSA DE ESTOQUE ANTES DE ACEITAR O PEDIDO
         async function handleCreateOrder(e) {
             e.preventDefault();
             if (!supabaseClient) return;
@@ -559,11 +586,10 @@
 
             const itemRows = document.querySelectorAll('.item-row');
             let itens = [];
-            let avisosEstoque = [];
 
             for (let row of itemRows) {
                 const produto = row.querySelector('.item-produto').value;
-                const detalhe = row.querySelector('.item-detalhe').value.trim();
+                const variacao = row.querySelector('.item-variacao').value;
                 const qtd = parseInt(row.querySelector('.item-qtd').value) || 1;
                 const servico = row.querySelector('.item-servico').value;
                 const fileInput = row.querySelector('.item-foto');
@@ -573,32 +599,31 @@
                     fotoBase64 = await convertFileToBase64(fileInput.files[0]);
                 }
 
+                // Verifica se tem no estoque
                 const estoqueMatch = estoqueItems.find(i => 
                     i.produto.toLowerCase() === produto.toLowerCase() && 
-                    i.variacao.toLowerCase().includes(detalhe.toLowerCase())
+                    i.variacao.toLowerCase() === variacao.toLowerCase()
                 );
 
-                if (estoqueMatch) {
-                    if (estoqueMatch.quantidade < qtd) {
-                        avisosEstoque.push(`⚠️ Alerta: ${produto} (${detalhe}) tem apenas ${estoqueMatch.quantidade} un. em estoque (Pedido exige ${qtd} un).`);
-                    } else {
-                        avisosEstoque.push(`✅ Estoque OK: ${produto} (${detalhe}) - ${estoqueMatch.quantidade} disponíveis.`);
-                    }
-                } else {
-                    avisosEstoque.push(`ℹ️ Nota: ${produto} (${detalhe}) não foi encontrado exatamente no estoque.`);
+                if (!estoqueMatch) {
+                    alert(`❌ ERRO: O item "${produto} (${variacao})" não foi encontrado no estoque cadastrado!`);
+                    return;
+                }
+
+                if (estoqueMatch.quantidade < qtd) {
+                    alert(`❌ ESTOQUE INSUFICIENTE!\n\nO item "${produto} - ${variacao}" possui apenas ${estoqueMatch.quantidade} unidades disponíveis, mas você pediu ${qtd}. O pedido não pode ser aceito.`);
+                    return; // Bloqueia o cadastro
                 }
 
                 itens.push({
                     produto: produto,
-                    descricao: `${produto} - Cor/Tamanho: ${detalhe}`,
+                    descricao: `${produto} [${variacao}]`,
                     quantidade: qtd,
                     servico: servico,
                     foto: fotoBase64,
                     nomeArquivo: fileInput.files.length > 0 ? fileInput.files[0].name : null
                 });
             }
-
-            alert("Verificação de Estoque:\n\n" + avisosEstoque.join("\n"));
 
             const novoPedido = {
                 ticket: ticketNum,
@@ -612,6 +637,7 @@
             const { error } = await supabaseClient.from('pedidos').insert([novoPedido]);
 
             if (!error) {
+                alert("✅ Pedido aceito e enviado para a oficina com sucesso! Estoque validado.");
                 document.getElementById('order-form').reset();
                 document.getElementById('order-items-container').innerHTML = '';
                 addOrderItemField();
@@ -642,6 +668,8 @@
             if (order && order.itens) {
                 for (let item of order.itens) {
                     const qtdPedida = parseInt(item.quantidade) || 1;
+                    
+                    // Extrai o nome do produto e a variação da descrição
                     const estoqueMatch = estoqueItems.find(i => 
                         i.produto.toLowerCase() === item.produto.toLowerCase() && 
                         item.descricao.toLowerCase().includes(i.variacao.toLowerCase())
