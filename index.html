@@ -55,7 +55,7 @@
 
             <div class="pt-2 border-t border-slate-100 flex justify-center items-center text-xs text-slate-400">
                 <span id="connection-status-badge" class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Supabase Conectado
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Conectado
                 </span>
             </div>
         </div>
@@ -85,7 +85,7 @@
             </div>
         </header>
 
-        <!-- Navegação de Abas Principal -->
+        <!-- Navegação de Abas -->
         <div class="bg-white border-b border-slate-200">
             <div class="max-w-5xl mx-auto px-4 flex gap-6 overflow-x-auto">
                 <button onclick="switchTab('ativos')" id="tab-ativos-btn" class="py-3 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0">
@@ -158,13 +158,11 @@
                             <span id="marcela-count" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2.5 py-1 rounded-full">0 pedidos</span>
                         </div>
 
-                        <div id="marcela-orders-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1">
-                            <!-- Inserido via JS -->
-                        </div>
+                        <div id="marcela-orders-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
 
-                <!-- Seção Histórico de Entregues (Aba Marcela) -->
+                <!-- Histórico Entregues (Marcela) -->
                 <div id="section-entregues" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 hidden">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -172,16 +170,13 @@
                         </h2>
                         <span id="marcela-entregues-count" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full">0 entregues</span>
                     </div>
-                    <div id="marcela-entregues-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1">
-                        <!-- Inserido via JS -->
-                    </div>
+                    <div id="marcela-entregues-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
             <!-- VISÃO DO JONATHAN (Produção / Oficina) -->
             <div id="view-jonathan" class="space-y-6 hidden">
                 <div id="jonathan-section-ativos" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Coluna Pendentes -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                             <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -192,7 +187,6 @@
                         <div id="col-pendente" class="space-y-3 min-h-[300px]"></div>
                     </div>
 
-                    <!-- Coluna Em Produção -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                             <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -203,7 +197,6 @@
                         <div id="col-producao" class="space-y-3 min-h-[300px]"></div>
                     </div>
 
-                    <!-- Coluna Prontos -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                             <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -215,7 +208,7 @@
                     </div>
                 </div>
 
-                <!-- Seção Histórico de Entregues (Aba Jonathan) -->
+                <!-- Histórico Entregues (Jonathan) -->
                 <div id="jonathan-section-entregues" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 hidden">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -223,9 +216,7 @@
                         </h2>
                         <span id="jonathan-entregues-count" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full">0 entregues</span>
                     </div>
-                    <div id="jonathan-entregues-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1">
-                        <!-- Inserido via JS -->
-                    </div>
+                    <div id="jonathan-entregues-list" class="space-y-4 max-h-[650px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
@@ -237,7 +228,7 @@
                             <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 <span>📊</span> Controle de Estoque de Insumos
                             </h2>
-                            <p class="text-xs text-slate-500">Gerencie a quantidade de camisas, canecas, azulejos e squeezes disponíveis.</p>
+                            <p class="text-xs text-slate-500">Gerenciamento sincronizado de camisas, canecas, azulejos e squeezes.</p>
                         </div>
                         <button onclick="openEstoqueModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5">
                             <span>+</span> Cadastrar Insumo
@@ -254,9 +245,7 @@
                                     <th class="p-3 font-semibold text-right">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="estoque-table-body" class="divide-y divide-slate-100">
-                                <!-- Preenchido via JS -->
-                            </tbody>
+                            <tbody id="estoque-table-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -265,7 +254,7 @@
         </main>
     </div>
 
-    <!-- Modal de Cadastro / Edição de Estoque -->
+    <!-- Modal de Estoque -->
     <div id="estoque-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -288,7 +277,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Variação (Cor / Tamanho)</label>
-                    <input type="text" id="est-variacao" required placeholder="Ex: Branco / Tamanho G ou Alça Vermelha" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input type="text" id="est-variacao" required placeholder="Ex: Branco / G ou Alça Vermelha" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Quantidade em Estoque</label>
@@ -340,7 +329,6 @@
         let currentTab = 'ativos';
         let orders = [];
         let estoqueItems = [];
-        let channel = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             initSupabase();
@@ -482,8 +470,8 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Cor / Tamanho (ex: Azul, G)" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
-                    <input type="number" min="1" placeholder="Quantidade (ex: 2)" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="text" placeholder="Cor / Tamanho / Detalhe" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="number" min="1" placeholder="Quantidade" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2 items-center">
                     <select class="item-servico w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
@@ -536,12 +524,12 @@
             }
         }
 
+        // TEMPO REAL OTIMIZADO SEM LAG
         function subscribeRealtime() {
             if (!supabaseClient) return;
-            if (channel) supabaseClient.removeChannel(channel);
 
-            channel = supabaseClient
-                .channel('public:schema-changes')
+            supabaseClient
+                .channel('realtime-all-changes')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, (payload) => {
                     fetchOrders();
                     if (payload.eventType === 'UPDATE' && payload.new.status === 'pronto' && payload.old.status !== 'pronto') {
@@ -559,7 +547,6 @@
                 .subscribe();
         }
 
-        // VERIFICAÇÃO INTELIGENTE DE ESTOQUE AO CADASTRAR PEDIDO
         async function handleCreateOrder(e) {
             e.preventDefault();
             if (!supabaseClient) return;
@@ -586,7 +573,6 @@
                     fotoBase64 = await convertFileToBase64(fileInput.files[0]);
                 }
 
-                // Verifica correspondência no estoque
                 const estoqueMatch = estoqueItems.find(i => 
                     i.produto.toLowerCase() === produto.toLowerCase() && 
                     i.variacao.toLowerCase().includes(detalhe.toLowerCase())
@@ -599,7 +585,7 @@
                         avisosEstoque.push(`✅ Estoque OK: ${produto} (${detalhe}) - ${estoqueMatch.quantidade} disponíveis.`);
                     }
                 } else {
-                    avisosEstoque.push(`ℹ️ Nota: ${produto} (${detalhe}) não foi encontrado exatamente no estoque cadastrado.`);
+                    avisosEstoque.push(`ℹ️ Nota: ${produto} (${detalhe}) não foi encontrado exatamente no estoque.`);
                 }
 
                 itens.push({
@@ -612,8 +598,7 @@
                 });
             }
 
-            // Exibe o status da validação do estoque
-            alert("Status da Verificação de Estoque:\n\n" + avisosEstoque.join("\n"));
+            alert("Verificação de Estoque:\n\n" + avisosEstoque.join("\n"));
 
             const novoPedido = {
                 ticket: ticketNum,
@@ -632,6 +617,7 @@
                 addOrderItemField();
                 const hoje = new Date().toISOString().split('T')[0];
                 document.getElementById('f-prazo').value = hoje;
+                fetchOrders();
             } else {
                 alert('Erro ao cadastrar pedido: ' + error.message);
             }
@@ -639,13 +625,15 @@
 
         async function updateOrderStatus(id, newStatus) {
             if (!supabaseClient) return;
-            await supabaseClient
+            const { error } = await supabaseClient
                 .from('pedidos')
                 .update({ status: newStatus })
                 .eq('id', id);
+
+            if (!error) fetchOrders();
         }
 
-        // BAIXA AUTOMÁTICA NO ESTOQUE AO CONCLUIR E ENTREGAR O PEDIDO
+        // BAIXA AUTOMÁTICA NO ESTOQUE AO ENTREGAR
         async function concluirPedido(id) {
             if (!confirm('Deseja marcar este pedido como entregue? O estoque será atualizado automaticamente.')) return;
             if (!supabaseClient) return;
@@ -675,6 +663,7 @@
                 .eq('id', id);
 
             fetchEstoque();
+            fetchOrders();
         }
 
         async function reabrirPedido(id) {
@@ -683,6 +672,7 @@
                 .from('pedidos')
                 .update({ status: 'pronto' })
                 .eq('id', id);
+            fetchOrders();
         }
 
         async function deleteOrder(id) {
@@ -692,6 +682,7 @@
                 .from('pedidos')
                 .delete()
                 .eq('id', id);
+            fetchOrders();
         }
 
         // Funções de Estoque
