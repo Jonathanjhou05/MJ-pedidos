@@ -105,7 +105,6 @@
 
             <!-- VISÃO DA MARCELA (Atendimento) -->
             <div id="view-marcela" class="space-y-6 hidden">
-                <!-- Seção Pedidos Ativos -->
                 <div id="section-ativos" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Formulário de Novo Pedido -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 space-y-4 h-fit">
@@ -129,7 +128,7 @@
                             <!-- Itens do Pedido com botão + -->
                             <div class="space-y-3 pt-2 border-t border-slate-100">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Itens Personalizados</label>
+                                    <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">Itens do Pedido</label>
                                     <button type="button" onclick="addOrderItemField()" class="px-2.5 py-1 bg-pink-100 hover:bg-pink-200 text-pink-700 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1">
                                         <span>+</span> Adicionar Item
                                     </button>
@@ -181,7 +180,6 @@
 
             <!-- VISÃO DO JONATHAN (Produção / Oficina) -->
             <div id="view-jonathan" class="space-y-6 hidden">
-                <!-- Kanban Ativos -->
                 <div id="jonathan-section-ativos" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Coluna Pendentes -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
@@ -239,7 +237,7 @@
                             <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 <span>📊</span> Controle de Estoque de Insumos
                             </h2>
-                            <p class="text-xs text-slate-500">Verifique a quantidade disponível de camisas, canecas, azulejos e squeezes.</p>
+                            <p class="text-xs text-slate-500">Gerencie a quantidade de camisas, canecas, azulejos e squeezes disponíveis.</p>
                         </div>
                         <button onclick="openEstoqueModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5">
                             <span>+</span> Cadastrar Insumo
@@ -289,12 +287,12 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Variação (Cor e/ou Tamanho)</label>
-                    <input type="text" id="est-variacao" required placeholder="Ex: Branco / Tamanho G" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Variação (Cor / Tamanho)</label>
+                    <input type="text" id="est-variacao" required placeholder="Ex: Branco / Tamanho G ou Alça Vermelha" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Quantidade em Estoque</label>
-                    <input type="number" id="est-qtd" required min="0" placeholder="Ex: 15" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input type="number" id="est-qtd" required min="0" placeholder="Ex: 15" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div class="pt-2 flex gap-2">
                     <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg text-xs transition-colors cursor-pointer">Salvar</button>
@@ -304,16 +302,14 @@
         </div>
     </div>
 
-    <!-- Modal de Visualização do Ticket / Comprovante -->
+    <!-- Modal de Ticket -->
     <div id="ticket-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="font-bold text-slate-900 text-base">🎟️ Ticket do Pedido</h3>
                 <button onclick="closeTicketModal()" class="text-slate-400 hover:text-slate-700 text-sm font-bold cursor-pointer">✕</button>
             </div>
-            <div id="ticket-content" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
-                <!-- Conteúdo gerado via JS -->
-            </div>
+            <div id="ticket-content" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs"></div>
             <div class="flex gap-2 pt-2">
                 <button onclick="window.print()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition-colors cursor-pointer">
                     Imprimir / Salvar PDF
@@ -325,7 +321,7 @@
         </div>
     </div>
 
-    <!-- Banner Notificação Sonora / Alerta -->
+    <!-- Banner Notificação -->
     <div id="notification-banner" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4 z-50 transform translate-y-32 opacity-0 transition-all duration-300 border border-slate-800">
         <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl shrink-0">🎉</div>
         <div>
@@ -335,7 +331,6 @@
         <button onclick="closeNotification()" class="text-slate-400 hover:text-white ml-3 text-sm font-bold cursor-pointer">✕</button>
     </div>
 
-    <!-- Script de Lógica do App com Supabase Realtime -->
     <script>
         const SUPABASE_URL = "https://gysadymuxagaqteijoyd.supabase.co";
         const SUPABASE_KEY = "sb_publishable_jjO8-Hyu9WsEWWkb2iEkRA_x5qcYX2A";
@@ -487,8 +482,8 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Cor / Tamanho" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
-                    <input type="number" min="1" placeholder="Qtd (ex: 2)" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="text" placeholder="Cor / Tamanho (ex: Azul, G)" class="item-detalhe w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="number" min="1" placeholder="Quantidade (ex: 2)" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2 items-center">
                     <select class="item-servico w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
@@ -564,7 +559,7 @@
                 .subscribe();
         }
 
-        // VERIFICAÇÃO INTELIGENTE DE ESTOQUE AO CADASTRAR
+        // VERIFICAÇÃO INTELIGENTE DE ESTOQUE AO CADASTRAR PEDIDO
         async function handleCreateOrder(e) {
             e.preventDefault();
             if (!supabaseClient) return;
@@ -591,7 +586,7 @@
                     fotoBase64 = await convertFileToBase64(fileInput.files[0]);
                 }
 
-                // Verifica se tem no estoque
+                // Verifica correspondência no estoque
                 const estoqueMatch = estoqueItems.find(i => 
                     i.produto.toLowerCase() === produto.toLowerCase() && 
                     i.variacao.toLowerCase().includes(detalhe.toLowerCase())
@@ -599,17 +594,17 @@
 
                 if (estoqueMatch) {
                     if (estoqueMatch.quantidade < qtd) {
-                        avisosEstoque.push(`⚠️ Alerta: ${produto} (${detalhe}) tem apenas ${estoqueMatch.quantidade} un. em estoque (Pedido: ${qtd} un).`);
+                        avisosEstoque.push(`⚠️ Alerta: ${produto} (${detalhe}) tem apenas ${estoqueMatch.quantidade} un. em estoque (Pedido exige ${qtd} un).`);
                     } else {
                         avisosEstoque.push(`✅ Estoque OK: ${produto} (${detalhe}) - ${estoqueMatch.quantidade} disponíveis.`);
                     }
                 } else {
-                    avisosEstoque.push(`ℹ️ Nota: ${produto} (${detalhe}) não foi encontrado exatamente no controle de estoque.`);
+                    avisosEstoque.push(`ℹ️ Nota: ${produto} (${detalhe}) não foi encontrado exatamente no estoque cadastrado.`);
                 }
 
                 itens.push({
                     produto: produto,
-                    descricao: `${produto} (${detalhe})`,
+                    descricao: `${produto} - Cor/Tamanho: ${detalhe}`,
                     quantidade: qtd,
                     servico: servico,
                     foto: fotoBase64,
@@ -617,8 +612,8 @@
                 });
             }
 
-            // Mostra o status do estoque para a Marcela antes de cadastrar
-            alert("Verificação de Estoque:\n\n" + avisosEstoque.join("\n"));
+            // Exibe o status da validação do estoque
+            alert("Status da Verificação de Estoque:\n\n" + avisosEstoque.join("\n"));
 
             const novoPedido = {
                 ticket: ticketNum,
@@ -674,7 +669,6 @@
                 }
             }
 
-            // Atualiza status para entregue
             await supabaseClient
                 .from('pedidos')
                 .update({ status: 'entregue' })
