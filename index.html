@@ -352,7 +352,7 @@
         async function initSupabase() {
             try {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                await fetchEstoque(); // Carrega o estoque primeiro
+                await fetchEstoque(); 
                 await fetchOrders();
                 
                 if (currentProfile && document.getElementById('order-items-container') && document.getElementById('order-items-container').children.length === 0) {
@@ -451,7 +451,7 @@
             return formato.charAt(0).toUpperCase() + formato.slice(1);
         }
 
-        // ADICIONA O ITEM COM SELECT DE COR / TAMANHO INTEGRADO AO ESTOQUE
+        // ADICIONA O ITEM COM SELECT DE COR / TAMANHO REAL VINDO DO ESTOQUE
         function addOrderItemField() {
             const container = document.getElementById('order-items-container');
             const index = container.children.length + 1;
@@ -476,10 +476,10 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <select class="item-variacao w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
-                        <option value="" disabled selected>Selecione Cor / Tamanho...</option>
+                    <select class="item-variacao w-full px-2.5 py-1.5 text-xs border-2 border-pink-200 bg-pink-50/50 rounded-lg focus:ring-2 focus:ring-pink-500 focus:outline-none font-medium text-slate-700 cursor-pointer" required>
+                        <option value="" disabled selected>Escolha Cor/Tamanho...</option>
                     </select>
-                    <input type="number" min="1" value="1" placeholder="Qtd" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
+                    <input type="number" min="1" value="1" placeholder="Qtd" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none text-center font-bold" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2 items-center">
                     <select class="item-servico w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
@@ -491,22 +491,26 @@
                 </div>
             `;
             container.appendChild(itemDiv);
+            
+            // Popula imediatamente com o estoque carregado
+            const selectProduto = itemDiv.querySelector('.item-produto');
+            atualizarVariacoes(selectProduto);
         }
 
-        // POPULA O SELECT DE VARIAÇÃO BASEADO EXATAMENTE NO ESTOQUE
+        // PREENCHE A CAIXA DE SELEÇÃO DE VARIAÇÃO COM OS ITENS DO ESTOQUE
         function atualizarVariacoes(selectElement) {
             const produtoSelecionado = selectElement.value;
             const row = selectElement.closest('.item-row');
             const variacaoSelect = row.querySelector('.item-variacao');
 
-            variacaoSelect.innerHTML = '<option value="" disabled selected>Selecione Cor / Tamanho...</option>';
+            variacaoSelect.innerHTML = '<option value="" disabled selected>Escolha Cor/Tamanho...</option>';
 
             const filtrados = estoqueItems.filter(i => i.produto.toLowerCase() === produtoSelecionado.toLowerCase());
 
             if (filtrados.length === 0) {
                 const opt = document.createElement('option');
                 opt.value = "";
-                opt.textContent = "Nenhum cadastrado no estoque";
+                opt.textContent = "Nenhum no estoque";
                 variacaoSelect.appendChild(opt);
             } else {
                 filtrados.forEach(i => {
@@ -553,7 +557,6 @@
 
             if (!error) {
                 estoqueItems = data || [];
-                // Atualiza os selects de variação caso já estejam abertos na tela
                 document.querySelectorAll('.item-produto').forEach(select => {
                     if (select.value) atualizarVariacoes(select);
                 });
@@ -625,7 +628,7 @@
                 }
 
                 if (estoqueMatch.quantidade < qtd) {
-                    alert(`❌ ESTOQUE INSUFICIENTE!\n\nO item "${produto} - ${variacao}" possui apenas ${estoqueMatch.quantidade} unidades disponíveis no estoque, mas você tentou pedir ${qtd}.\n\nO pedido foi BLOQUEADO. Ajuste a quantidade ou reabasteça o estoque.`);
+                    alert(`❌ ESTOQUE INSUFICIENTE!\n\nO item "${produto} - ${variacao}" possui apenas ${estoqueMatch.quantidade} unidades disponíveis no estoque, mas você tentou pedir ${qtd}.\n\nO pedido foi BLOQUEADO.`);
                     return; // Bloqueia o envio do pedido
                 }
 
