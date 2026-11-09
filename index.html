@@ -55,7 +55,7 @@
 
             <div class="pt-2 border-t border-slate-100 flex justify-center items-center text-xs text-slate-400">
                 <span id="connection-status-badge" class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Supabase Conectado
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Conectado
                 </span>
             </div>
         </div>
@@ -356,7 +356,10 @@
             try {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 fetchOrders();
-                fetchEstoque();
+                fetchEstoque().then(() => {
+                    // Atualiza os selects caso já haja campos na tela
+                    document.querySelectorAll('.item-produto').forEach(select => atualizarVariacoes(select));
+                });
                 subscribeRealtime();
             } catch (e) {
                 console.error(e);
@@ -486,6 +489,10 @@
                 </div>
             `;
             container.appendChild(itemDiv);
+            
+            // Preenche as variações se o estoque já estiver carregado
+            const selectProduto = itemDiv.querySelector('.item-produto');
+            atualizarVariacoes(selectProduto);
         }
 
         // ATUALIZA AS OPÇÕES DE VARIAÇÃO DE ACORDO COM O ESTOQUE CADASTRADO
@@ -500,8 +507,8 @@
 
             if (filtrados.length === 0) {
                 const opt = document.createElement('option');
-                opt.value = "Padrão";
-                opt.textContent = "Padrão (Nenhum em estoque)";
+                opt.value = "";
+                opt.textContent = "Nenhum item cadastrado no estoque";
                 variacaoSelect.appendChild(opt);
             } else {
                 filtrados.forEach(i => {
@@ -548,6 +555,10 @@
 
             if (!error) {
                 estoqueItems = data || [];
+                // Atualiza os selects caso novos itens venham do banco
+                document.querySelectorAll('.item-produto').forEach(select => {
+                    if (select.value) atualizarVariacoes(select);
+                });
             }
         }
 
@@ -594,6 +605,11 @@
                 const servico = row.querySelector('.item-servico').value;
                 const fileInput = row.querySelector('.item-foto');
                 let fotoBase64 = null;
+
+                if (!variacao) {
+                    alert(`❌ ERRO: Selecione a cor / tamanho para o produto "${produto}".`);
+                    return;
+                }
 
                 if (fileInput.files.length > 0) {
                     fotoBase64 = await convertFileToBase64(fileInput.files[0]);
@@ -669,7 +685,6 @@
                 for (let item of order.itens) {
                     const qtdPedida = parseInt(item.quantidade) || 1;
                     
-                    // Extrai o nome do produto e a variação da descrição
                     const estoqueMatch = estoqueItems.find(i => 
                         i.produto.toLowerCase() === item.produto.toLowerCase() && 
                         item.descricao.toLowerCase().includes(i.variacao.toLowerCase())
