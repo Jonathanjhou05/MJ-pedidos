@@ -337,9 +337,6 @@
                 document.getElementById('app-container').classList.remove('hidden');
                 setupView();
             }
-            if (document.getElementById('order-items-container')) {
-                addOrderItemField();
-            }
             
             const hoje = new Date().toISOString().split('T')[0];
             const inputPrazo = document.getElementById('f-prazo');
@@ -352,14 +349,16 @@
             }
         });
 
-        function initSupabase() {
+        async function initSupabase() {
             try {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                fetchOrders();
-                fetchEstoque().then(() => {
-                    // Atualiza os selects caso já haja campos na tela
-                    document.querySelectorAll('.item-produto').forEach(select => atualizarVariacoes(select));
-                });
+                await fetchEstoque(); // Carrega o estoque primeiro
+                await fetchOrders();
+                
+                if (currentProfile && document.getElementById('order-items-container') && document.getElementById('order-items-container').children.length === 0) {
+                    addOrderItemField();
+                }
+
                 subscribeRealtime();
             } catch (e) {
                 console.error(e);
@@ -372,6 +371,9 @@
             document.getElementById('profile-screen').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
             setupView();
+            if (document.getElementById('order-items-container').children.length === 0) {
+                addOrderItemField();
+            }
         }
 
         function switchProfile() {
@@ -449,7 +451,7 @@
             return formato.charAt(0).toUpperCase() + formato.slice(1);
         }
 
-        // ADICIONA O ITEM COM SELECTS DINÂMICOS CONVERSANDO COM O ESTOQUE
+        // ADICIONA O ITEM COM SELECT DE COR / TAMANHO INTEGRADO AO ESTOQUE
         function addOrderItemField() {
             const container = document.getElementById('order-items-container');
             const index = container.children.length + 1;
@@ -475,7 +477,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <select class="item-variacao w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
-                        <option value="" disabled selected>Selecione a Cor / Tamanho...</option>
+                        <option value="" disabled selected>Selecione Cor / Tamanho...</option>
                     </select>
                     <input type="number" min="1" value="1" placeholder="Qtd" class="item-qtd w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-pink-500 focus:outline-none" required>
                 </div>
@@ -489,26 +491,22 @@
                 </div>
             `;
             container.appendChild(itemDiv);
-            
-            // Preenche as variações se o estoque já estiver carregado
-            const selectProduto = itemDiv.querySelector('.item-produto');
-            atualizarVariacoes(selectProduto);
         }
 
-        // ATUALIZA AS OPÇÕES DE VARIAÇÃO DE ACORDO COM O ESTOQUE CADASTRADO
+        // POPULA O SELECT DE VARIAÇÃO BASEADO EXATAMENTE NO ESTOQUE
         function atualizarVariacoes(selectElement) {
             const produtoSelecionado = selectElement.value;
             const row = selectElement.closest('.item-row');
             const variacaoSelect = row.querySelector('.item-variacao');
 
-            variacaoSelect.innerHTML = '<option value="" disabled selected>Selecione a Cor / Tamanho...</option>';
+            variacaoSelect.innerHTML = '<option value="" disabled selected>Selecione Cor / Tamanho...</option>';
 
             const filtrados = estoqueItems.filter(i => i.produto.toLowerCase() === produtoSelecionado.toLowerCase());
 
             if (filtrados.length === 0) {
                 const opt = document.createElement('option');
                 opt.value = "";
-                opt.textContent = "Nenhum item cadastrado no estoque";
+                opt.textContent = "Nenhum cadastrado no estoque";
                 variacaoSelect.appendChild(opt);
             } else {
                 filtrados.forEach(i => {
@@ -555,7 +553,7 @@
 
             if (!error) {
                 estoqueItems = data || [];
-                // Atualiza os selects caso novos itens venham do banco
+                // Atualiza os selects de variação caso já estejam abertos na tela
                 document.querySelectorAll('.item-produto').forEach(select => {
                     if (select.value) atualizarVariacoes(select);
                 });
@@ -584,7 +582,7 @@
                 .subscribe();
         }
 
-        // VALIDAÇÃO RIGOROSA DE ESTOQUE ANTES DE ACEITAR O PEDIDO
+        // VALIDAÇÃO RIGOROSA E BLOQUEIO SE O ESTOQUE FOR INSUFICIENTE
         async function handleCreateOrder(e) {
             e.preventDefault();
             if (!supabaseClient) return;
@@ -607,7 +605,7 @@
                 let fotoBase64 = null;
 
                 if (!variacao) {
-                    alert(`❌ ERRO: Selecione a cor / tamanho para o produto "${produto}".`);
+                    alert(`❌ ERRO: Selecione a cor ou tamanho para o produto "${produto}".`);
                     return;
                 }
 
@@ -615,20 +613,20 @@
                     fotoBase64 = await convertFileToBase64(fileInput.files[0]);
                 }
 
-                // Verifica se tem no estoque
+                // Verifica o estoque atualizado do banco
                 const estoqueMatch = estoqueItems.find(i => 
                     i.produto.toLowerCase() === produto.toLowerCase() && 
                     i.variacao.toLowerCase() === variacao.toLowerCase()
                 );
 
                 if (!estoqueMatch) {
-                    alert(`❌ ERRO: O item "${produto} (${variacao})" não foi encontrado no estoque cadastrado!`);
+                    alert(`❌ ERRO: O item "${produto} (${variacao})" não foi encontrado no estoque.`);
                     return;
                 }
 
                 if (estoqueMatch.quantidade < qtd) {
-                    alert(`❌ ESTOQUE INSUFICIENTE!\n\nO item "${produto} - ${variacao}" possui apenas ${estoqueMatch.quantidade} unidades disponíveis, mas você pediu ${qtd}. O pedido não pode ser aceito.`);
-                    return; // Bloqueia o cadastro
+                    alert(`❌ ESTOQUE INSUFICIENTE!\n\nO item "${produto} - ${variacao}" possui apenas ${estoqueMatch.quantidade} unidades disponíveis no estoque, mas você tentou pedir ${qtd}.\n\nO pedido foi BLOQUEADO. Ajuste a quantidade ou reabasteça o estoque.`);
+                    return; // Bloqueia o envio do pedido
                 }
 
                 itens.push({
@@ -653,7 +651,7 @@
             const { error } = await supabaseClient.from('pedidos').insert([novoPedido]);
 
             if (!error) {
-                alert("✅ Pedido aceito e enviado para a oficina com sucesso! Estoque validado.");
+                alert("✅ Pedido aceito e enviado para a oficina com sucesso!");
                 document.getElementById('order-form').reset();
                 document.getElementById('order-items-container').innerHTML = '';
                 addOrderItemField();
@@ -675,7 +673,7 @@
             if (!error) fetchOrders();
         }
 
-        // BAIXA AUTOMÁTICA NO ESTOQUE AO ENTREGAR
+        // BAIXA AUTOMÁTICA NO ESTOQUE AO CONCLUIR E ENTREGAR
         async function concluirPedido(id) {
             if (!confirm('Deseja marcar este pedido como entregue? O estoque será atualizado automaticamente.')) return;
             if (!supabaseClient) return;
